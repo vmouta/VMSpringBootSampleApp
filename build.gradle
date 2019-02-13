@@ -1,13 +1,19 @@
+
 plugins {
-	id 'org.springframework.boot' version '2.2.0.BUILD-SNAPSHOT'
-	id 'java'
+  id "org.springframework.boot" version "2.1.2.RELEASE"
+  id "com.palantir.docker" version "0.21.0"
 }
 
+apply plugin: 'java'
+apply plugin: 'eclipse'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.palantir.docker'
 
 group = 'com.vascomouta'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
 	mavenCentral()
@@ -20,6 +26,17 @@ dependencies {
 	compile 'org.springframework.boot:spring-boot-starter-actuator'
 	
 	implementation 'org.springframework.boot:spring-boot-starter'
-	runtimeOnly 'mysql:mysql-connector-java'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
+
+task unpack(type: Copy) {
+    from(zipTree(jar.archivePath))
+    into("build/dependency")
+}
+
+docker {
+    name "${docker_user}/${project.name.toLowerCase()}"
+    copySpec.from(tasks.unpack.outputs).into("dependency")
+    buildArgs(['DEPENDENCY': "dependency"])
+}
+
