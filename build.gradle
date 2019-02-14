@@ -29,14 +29,17 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-task unpack(type: Copy) {
-    from(zipTree(jar.archivePath))
-    into("build/dependency")
+task copyJar(type: Copy) {
+    from        "${jar.archivePath}"
+    into        'build/docker'
+    rename { String fileName ->
+        fileName.replace("-${project.version}", "")
+    }
 }
 
 docker {
+	dependsOn   copyJar
     name "${docker_user}/${project.name.toLowerCase()}"
-    copySpec.from(tasks.unpack.outputs).into("dependency")
-    buildArgs(['DEPENDENCY': "dependency"])
 }
+
 
